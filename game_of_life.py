@@ -11,7 +11,7 @@ pygame.key.set_repeat(10, 100)
 DISPLAY_WIDTH = 600
 DISPLAY_HEIGHT = 600
 GRID_THICKNESS = 1
-BLOCK_SIZE = 6
+BLOCK_SIZE = 12
 FPS = 5
 
 FONT = pygame.font.Font('freesansbold.ttf', 32)
@@ -23,6 +23,14 @@ user_input = sys.argv
 
 
 # functions
+def display_FPS():
+	font_color = colors.BLACK
+	fps_text = FONT.render("FPS: " + str(FPS), True, font_color, colors.WHITE)
+	fps_rect = fps_text.get_rect()
+	fps_rect.x = DISPLAY_WIDTH - 150
+	fps_rect.y = 10
+	game_display.blit(fps_text, fps_rect)
+
 def draw_grid():
 	# Horizontal Lines
 	for y in range(0, DISPLAY_HEIGHT, BLOCK_SIZE):
@@ -108,13 +116,13 @@ def check_neighbors(cell, living_cells, neighboring_dead_cells):
 
 
 def pause():
-	PAUSE_FONT = pygame.font.Font("freesansbold.ttf", 35)
-	pause_text = PAUSE_FONT.render("Paused", True, colors.WHITE, colors.BLACK)
-	pause_rect = pause_text.get_rect()
-	pause_rect.center = (DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2)
+	# PAUSE_FONT = pygame.font.Font("freesansbold.ttf", 35)
+	# pause_text = PAUSE_FONT.render("Paused", True, colors.WHITE, colors.BLACK)
+	# pause_rect = pause_text.get_rect()
+	# pause_rect.center = (DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2)
 	paused = True
 
-	game_display.blit(pause_text, pause_rect)
+	# game_display.blit(pause_text, pause_rect)
 	pygame.display.update()
 
 	while paused:
@@ -154,8 +162,11 @@ def generate_start_cells():
 def game_loop(start_cells):
 	running = True
 	game_over = False
+	step = False
 	dt = 0
 	living_cells = start_cells
+	hide_fps = False
+	global FPS
 
 	while running:
 		if game_over:
@@ -186,6 +197,16 @@ def game_loop(start_cells):
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_1:
 					running = pause()
+				if event.key == pygame.K_2:
+					if FPS > 1:
+						FPS -= 1
+				if event.key == pygame.K_3:
+					FPS += 1
+				if event.key == pygame.K_4:
+					if hide_fps:
+						hide_fps = False
+					else:
+						hide_fps = True
 
 		#Update
 		living_cells = update_cells(living_cells)
@@ -194,8 +215,9 @@ def game_loop(start_cells):
 		game_display.fill(colors.WHITE)
 		draw_cells(living_cells)
 		draw_grid()
+		if not hide_fps:
+			display_FPS()
 		pygame.display.update()
-		# use dt to speed up tetrimino blocks later
 		dt += clock.tick(FPS)
 
 
@@ -215,7 +237,5 @@ else:
 # blinker
 # start_cells = {(50, 50): 1, (62, 50): 1, (74, 50): 1}
 
-
-print(start_cells)
 game_loop(start_cells)
 pygame.quit()
