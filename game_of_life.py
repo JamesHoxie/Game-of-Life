@@ -232,6 +232,12 @@ if user_input == ['game_of_life.py']:
 else:
 	for entry in user_input[1].split(';'):
 		coordinates = make_tuple(entry)
+
+		if coordinates[0] % 12 != 0 or coordinates[1] % 12 != 0:
+			raise ValueError("Start coordinates must be multiples of 12")
+		elif coordinates[0] < 0 or coordinates[0] > DISPLAY_WIDTH-BLOCK_SIZE or coordinates[1] < 0 or coordinates[1] > DISPLAY_HEIGHT-BLOCK_SIZE:
+			raise ValueError("Start coordinates must be between 0 and 588, inclusive")
+		
 		start_cells[coordinates] = 1 
 
 # blinker
