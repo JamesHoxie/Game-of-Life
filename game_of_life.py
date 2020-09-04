@@ -1,21 +1,25 @@
 import pygame
 import random
 import math
+import sys
 from resources import Palette as colors
+from ast import literal_eval as make_tuple
 
 pygame.init()
 pygame.key.set_repeat(10, 100)
 
 DISPLAY_WIDTH = 600
 DISPLAY_HEIGHT = 600
-GRID_THICKNESS = 2
-BLOCK_SIZE = 12
+GRID_THICKNESS = 1
+BLOCK_SIZE = 6
 FPS = 5
 
 FONT = pygame.font.Font('freesansbold.ttf', 32)
 game_display = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
 pygame.display.set_caption("Game of Life")
 clock = pygame.time.Clock()
+start_cells = {}
+user_input = sys.argv
 
 
 # functions
@@ -79,16 +83,18 @@ def check_neighbors(cell, living_cells, neighboring_dead_cells):
 				(cell_x, cell_y + BLOCK_SIZE), 
 				(cell_x - BLOCK_SIZE, cell_y + BLOCK_SIZE)]
 
-	# returns 1 if this neighbor cell is living, 0 otherwise
+	# returns 1 if this neighbor cell is living, 0 otherwise, throws out neighbors at invalid bounds
 	def process_neighbor(neighbor_cell):
-		if neighbor_cell in living_cells:
-			return 1
+		# if this neighbor cell is in valid bounds, check rest, else return 0
+		if 0 <= neighbor_cell[0] < DISPLAY_WIDTH and 0 <= neighbor_cell[1] < DISPLAY_HEIGHT:
+			if neighbor_cell in living_cells:
+				return 1
 		
-		else:
-			if neighbor_cell in neighboring_dead_cells:
-				neighboring_dead_cells[neighbor_cell] += 1
-			else: 
-				neighboring_dead_cells[neighbor_cell] = 1
+			else:
+				if neighbor_cell in neighboring_dead_cells:
+					neighboring_dead_cells[neighbor_cell] += 1
+				else: 
+					neighboring_dead_cells[neighbor_cell] = 1
 
 		return 0
 
@@ -120,6 +126,30 @@ def pause():
 					return True
 
 		clock.tick(5)
+
+# generate a random set of starting cells for the simulation
+def generate_start_cells():
+	start_cells = {}
+	num_start_cells = random.randint(750, 1250)
+
+	for i in range(num_start_cells):
+		while True:
+			x = random.randint(0, DISPLAY_WIDTH-BLOCK_SIZE)
+			while(x % BLOCK_SIZE != 0):
+				x = random.randint(0, DISPLAY_WIDTH-BLOCK_SIZE)
+
+			y = random.randint(0, DISPLAY_HEIGHT-BLOCK_SIZE)
+			while(y % BLOCK_SIZE != 0):
+				y = random.randint(0, DISPLAY_HEIGHT-BLOCK_SIZE)
+
+			new_cell = (x, y)
+
+			if new_cell not in start_cells:
+				start_cells[new_cell] = 1
+				break
+			
+
+	return start_cells
 
 def game_loop(start_cells):
 	running = True
@@ -164,7 +194,6 @@ def game_loop(start_cells):
 		game_display.fill(colors.WHITE)
 		draw_cells(living_cells)
 		draw_grid()
-
 		pygame.display.update()
 		# use dt to speed up tetrimino blocks later
 		dt += clock.tick(FPS)
@@ -173,9 +202,20 @@ def game_loop(start_cells):
 # block
 # start_cells = {(50, 50): 1, (62, 50): 1, (50, 62): 1, (62, 62): 1}
 
+# if no command line init given, use default of random starting cells
+if user_input == ['game_of_life.py']:
+	start_cells = generate_start_cells()	
+
+# user input given, parse out starting cells
+else:
+	for entry in user_input[1].split(';'):
+		coordinates = make_tuple(entry)
+		start_cells[coordinates] = 1 
+
 # blinker
 # start_cells = {(50, 50): 1, (62, 50): 1, (74, 50): 1}
 
-# TODO: Test this with random starting cells
+
+print(start_cells)
 game_loop(start_cells)
 pygame.quit()
